@@ -33,7 +33,6 @@ app.get("/api/top-headlines", (req, res) => {
 
   const category = req.query.category;
   const country = req.query.country;
-
   const URL = generateGetURL(category, country, process.env.API_KEY);
 
   if (URL === vars.badURL) {
@@ -60,3 +59,7 @@ const port = process.env.PORT || 4000;
 app.listen(port, () => {
   console.log(`NewsX server is listening on port ${port}`);
 });
+
+/* todos
+exists function
+*/

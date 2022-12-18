@@ -11,7 +11,7 @@ function exists(item) {
 
 function generateGetURL(category, country, apiKey) {
   if (!exists(category) && !exists(country)) {
-    // return vars.badURL; // NEWS API needs atleast one param
+    return vars.badURL; // NEWS API needs atleast one param
   }
 
   let URL = "https://newsapi.org/v2/top-headlines?";
