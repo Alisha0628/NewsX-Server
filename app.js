@@ -15,12 +15,13 @@ const { vars } = require("./utilities/Vars.js");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-app.use(
-  cors({
-    origin: process.env.CLIENT_ORIGIN,
-  })
-);
+// app.use(
+//   cors({
+//     origin: process.env.CLIENT_ORIGIN,
+//   })
+// );
 
+app.use(cors());
 /* 
 we dont need body parser and express.json as we are neither getting any form data nor we need to parse any request body
 
