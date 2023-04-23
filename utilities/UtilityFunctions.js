@@ -1,3 +1,4 @@
+const { User, Item } = require("../models.js");
 const { vars } = require("./Vars.js");
 const axios = require("axios").default;
 
@@ -46,13 +47,46 @@ function generateSearchURL(keyword, apiKey) {
 async function getNews(req, res, URL) {
   try {
     const response = await axios.get(URL);
+    // console.log(req.person);
+    const user = req.person;
+
+    const items = response.data.articles;
+
+    const userDoc = await User.findOne({
+      username: user.username,
+      password: user.password,
+    });
+
+    // console.log(userDoc);
+
+    const storedItems = await Item.find();
+    // console.log(storedItems);
+
+    for (let i = 0; i < items.length; i++) {
+      items[i].isLiked = false;
+      if (userDoc.likedItemsURL.includes(items[i].url)) {
+        items[i].isLiked = true;
+      }
+
+      items[i].likes = 0;
+      for (let j = 0; j < storedItems.length; j++) {
+        if (storedItems[j].url === items[i].url) {
+          items[i].likes = storedItems[j].likes;
+        }
+      }
+    }
+
+    // const itemsDoc = Item.find()
+    const slicedArray = items.slice(0, 4);
+
+    console.log(slicedArray);
 
     res.send(response.data.articles);
 
     /* very imp to return response.data.articles not the response else it will give a circular json error */
   } catch (error) {
-    // console.error(error);
-    res.error(error); // use res.error so its recieved as an error at the client side
+    console.error(error);
+    // res.error(error); // use res.error so its recieved as an error at the client side
   }
 }
 
