@@ -45,7 +45,7 @@ async function main() {
 
 main().catch((err) => console.log(err));
 
-app.get("/api/top-headlines", verifyToken, (req, res) => {
+app.get("/api/top-headlines", verifyToken, async (req, res) => {
   // console.log(req.query);
 
   const category = req.query.category;
@@ -59,8 +59,10 @@ app.get("/api/top-headlines", verifyToken, (req, res) => {
   getNews(req, res, URL);
 });
 
-app.get("/api/search", verifyToken, (req, res) => {
+app.get("/api/search", verifyToken, async (req, res) => {
   // console.log(req.query);
+
+  const user = req.person;
 
   const keyword = req.query.keyword;
   const URL = generateSearchURL(keyword, process.env.API_KEY);
@@ -68,6 +70,14 @@ app.get("/api/search", verifyToken, (req, res) => {
   if (URL === vars.badURL) {
     res.status(400).send(statusText.INVALID_KEYWORD);
   }
+
+  await User.findOneAndUpdate(
+    {
+      username: user.username,
+      password: user.password,
+    },
+    { $push: { searchHistory: keyword } }
+  );
 
   getNews(req, res, URL);
 });
@@ -176,12 +186,10 @@ app.post("/api/like-item", verifyToken, async (req, res) => {
           .status(200)
           .send({ statusText: "Liked successfully", likes: updatedItem.likes });
       } else {
-        res
-          .status(200)
-          .send({
-            statusText: "Unliked successfully",
-            likes: updatedItem.likes,
-          });
+        res.status(200).send({
+          statusText: "Unliked successfully",
+          likes: updatedItem.likes,
+        });
       }
     }
   } catch (error) {
@@ -189,6 +197,45 @@ app.post("/api/like-item", verifyToken, async (req, res) => {
     res.status(500).send({
       statusText: "Sorry! couldn't perform the operation",
     });
+  }
+});
+
+app.get("/api/history", verifyToken, async (req, res) => {
+  try {
+    const user = req.person;
+    console.log(user);
+
+    const userDoc = await User.findOne(
+      {
+        username: user.username,
+        password: user.password,
+      },
+      { searchHistory: 1 }
+    );
+
+    console.log(userDoc);
+
+    // userDoc.searchHistory = [
+    //   "wiefn wkjfnjwnf wkwnfkwnfnkw wknfeknwf wnfkwef",
+    //   "sksf jwi efnwnf wkfenkweef wkeefnkwnf kwnfkwnfe nkwej nfnkwef",
+    //   "sksf jwi efnwnf wkfenkweef wkeefnkwnf kwnfkwnfe nkwej nfnkwef",
+    //   "sksf jwi efnwnf wkfenkweef wkeefnkwnf kwnfkwnfe nkwej nfnkwef",
+    //   "sksf jwi efnwnf wkfenkweef wkeefnkwnf kwnfkwnfe nkwej nfnkwef",
+    //   "sksf jwi efnwnf wkfenkweef wkeefnkwnf kwnfkwnfe nkwej nfnkwef",
+    //   "sksf jwi efnwnf wkfenkweef wkeefnkwnf kwnfkwnfe nkwej nfnkwef",
+    //   "sksf jwi efnwnf wkfenkweef wkeefnkwnf kwnfkwnfe nkwej nfnkwef",
+
+    //   "skjfnwjfkwnef",
+    //   "skjnfknfknwfkw",
+    //   "wkejnefjwnfkjnwkfnkw kwnfkwnfw wknfwknf wekfnwknfw fkwe ef",
+    // ];
+
+    res
+      .status(200)
+      .send({ statusText: "Success", history: userDoc.searchHistory });
+  } catch (error) {
+    // console.log(error);
+    // res.status(500).send({ statusText: "Registered failed" });
   }
 });
 
